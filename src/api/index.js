@@ -1,6 +1,16 @@
-import { userAPI } from './userAPI'
+import { userCenter } from './userCenter'
+import { managerCenter } from './managerCenter'
+import { robotCenter } from './robotCenter'
+import { orderCenter } from './orderCenter'
+import { loginAPI } from './loginAPI'
 
 
-export { userAPI } 
+export { 
+    userCenter, 
+    managerCenter, 
+    robotCenter, 
+    orderCenter,
+    loginAPI,
+ } 
 
 

@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form ref="loginForm" :model="loginForm" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
         <h3 class="title">TG投注</h3>
@@ -12,7 +12,7 @@
         </span>
         <el-input
           ref="username"
-          v-model="loginForm.username"
+          v-model="loginForm.userName"
           placeholder="Username"
           name="username"
           type="text"
@@ -47,37 +47,18 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
 
 export default {
   name: 'Login',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
-      } else {
-        callback()
-      }
-    }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        userName: 'baicai123',
+        password: 'abcd1234'
       },
-      loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
-      },
+
       loading: false,
       passwordType: 'password',
-      redirect: undefined
     }
   },
   watch: {
@@ -104,14 +85,19 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || '/' })
-            this.loading = false
-          }).catch(() => {
-            this.loading = false
+          this.$store.dispatch('user/login', this.loginForm).then((res) => {
+            if(res.code == this.$constant.RESPONSECODE.SUCCESS) {
+              this.loading = false
+              this.$auth.setToken("Bearer " + res.data.token)
+              this.$store.commit('user/SET_NAME', res.data.userName)
+              this.$message.success(res.msg)
+              this.$router.push('/')
+            } else {
+              this.loading = false
+              this.$message.error(res.msg)
+            }
           })
         } else {
-          console.log('error submit!!')
           return false
         }
       })

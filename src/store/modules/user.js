@@ -1,10 +1,11 @@
-import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import * as API from '@/api/loginAPI'
+import auth from '@/utils/auth'
 import { resetRouter } from '@/router'
+import constant from '@/utils/constant'
 
 const getDefaultState = () => {
   return {
-    token: getToken(),
+    token: auth.getToken(),
     name: '',
     avatar: ''
   }
@@ -29,18 +30,13 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  async login({ commit }, userInfo) {
+   
+    var args = new URLSearchParams()
+    args.append("userName", userInfo.userName.trim())
+    args.append("password", userInfo.password)
+    const {code, data, msg} = await API.loginAPI.login(args)
+    return {code, data, msg}
   },
 
   // get user info
@@ -65,23 +61,23 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
+  // logout({ commit, state }) {
+  //   return new Promise((resolve, reject) => {
+  //     logout(state.token).then(() => {
+  //       auth.removeToken() // must remove  token  first
+  //       resetRouter()
+  //       commit('RESET_STATE')
+  //       resolve()
+  //     }).catch(error => {
+  //       reject(error)
+  //     })
+  //   })
+  // },
 
   // remove token
   resetToken({ commit }) {
     return new Promise(resolve => {
-      removeToken() // must remove  token  first
+      auth.removeToken() // must remove  token  first
       commit('RESET_STATE')
       resolve()
     })

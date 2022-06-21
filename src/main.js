@@ -28,6 +28,9 @@ Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
 
+import auth from '@/utils/auth'
+Vue.prototype.$auth = auth
+
 import common from '@/utils/common'
 Vue.prototype.$common = common
 

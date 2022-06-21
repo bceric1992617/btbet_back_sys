@@ -1,11 +1,23 @@
 import { Message } from 'element-ui'
+import { orderCenter } from '@/api/orderCenter'
 
 const common = {
-
+    getBetType: async () => {
+        if(1 || !common.isSet(sessionStorage.getItem('betType'))) { 
+            var newData = {}
+            const { data } = await orderCenter.getBetType();
+            for(var i in data) {
+                newData[data[i].value] = data[i].name
+            }
+            sessionStorage.setItem('betType', JSON.stringify(newData))
+        }
+        // console.log(JSON.parse(sessionStorage.getItem('betType')),2222)
+        common.betType = JSON.parse(sessionStorage.getItem('betType'))
+    },
 
     resetArgs : (list) => { //清空参数
         Object.keys(list).forEach((k,v) => {
-            if(k == "pageNum") {
+            if(k == "pageNumber") {
                 list[k] = 1
             } else if (k == "pageSize") {
                 list[k] = common.defaultPage
@@ -16,7 +28,7 @@ const common = {
         return list
     },
     isSet : (val)  => {
-        if(val == undefined || val == '' || val == null) {
+        if(val === undefined || val === '' || val === null) {
             return false
         } else {
             return true
@@ -26,10 +38,11 @@ const common = {
     transferToSearchParams(json) {
         let args = new URLSearchParams()
         for(var i in json) {
-            if(json[i] != "") {
+            if(common.isSet(json[i])) {
                 args.append(i, json[i])
             }
         }
+
         return args
     },
 
@@ -62,11 +75,14 @@ const common = {
     },
 
     
-    timeOut: 3000,
-    defaultPage: 20,
-    test : [],
+    timeOut: 5000,
+    msgTime: 3000,
+    defaultPage: 10, //默认页码
 
 
+
+    clientType: ["网版","手机版","飞机"],
+    betType: []
 }
 
 export default common
