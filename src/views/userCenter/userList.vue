@@ -4,22 +4,22 @@
 
     <el-card class="box-card">
       <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-      <el-form-item label="用户名：">
-        <el-input v-model="listQuery.userName" placeholder="请输入用户名" class="filter-item"  />
-      </el-form-item>
-      
+        <el-form-item label="用户名：">
+          <el-input v-model="listQuery.userName" placeholder="请输入用户名" class="filter-item"  />
+        </el-form-item>
+        <el-form-item>
+          <el-button  class="filter-item" type="primary" @click="handleFilter">
+            查询
+          </el-button>
+          <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
+            重置
+          </el-button>
+        </el-form-item>
       </el-form>
-      <el-button  class="filter-item" type="primary" @click="handleFilter">
-        查询
-      </el-button>
-      <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
-        重置
-      </el-button>
+
+
 
       <el-table class="m-t-20" :data="list" border stripe>
-        <el-table-column label="ID" width="80px" align="center">
-          <template slot-scope="scope">{{scope.row.id}}</template>
-        </el-table-column>
         <el-tableColumn label="用户名" align="center">
           <template slot-scope="scope">{{scope.row.userName}}</template>
         </el-tableColumn>
@@ -105,33 +105,18 @@ export default {
 
   methods: {
     changeStatus(row) {
-      if(row.status) {
-        var text = "确定禁用吗？"
-        var statusValue = this.$constant.STATUSLIST.DISABLESTATUS
-      } else {
-        var text = "确定启用吗？"
-        var statusValue = this.$constant.STATUSLIST.ENABLESTATUS
-      }
-
-      this.$confirm(text,"提示", {
-        cancelButtonText : "取消",
-        confirmButtonText : "确定",
-        type : 'warning'
-      }).then( async () => {
-        let args = this.$common.transferToSearchParams({
-          id : row.id,
-          status : statusValue,
-        })
-
-        this.$api.userCenter.changeUserStatus(args).then(res => {
-          if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
-            this.fetchData()
-            this.$message.success(res.msg)
-          } else {
-            this.$message.error(res.msg)
-          }
-        })
-
+      var statusValue = row.status ? this.$constant.STATUSLIST.DISABLESTATUS : this.$constant.STATUSLIST.ENABLESTATUS;
+      let args = this.$common.transferToSearchParams({
+        id : row.id,
+        status : row.status ? this.$constant.STATUSLIST.DISABLESTATUS : this.$constant.STATUSLIST.ENABLESTATUS,
+      })
+      this.$api.userCenter.changeUserStatus(args).then(res => {
+        if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
+          this.fetchData()
+          this.$message.success(res.msg)
+        } else {
+          this.$message.error(res.msg)
+        }
       })
     },
 

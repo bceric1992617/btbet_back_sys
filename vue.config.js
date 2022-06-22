@@ -36,17 +36,18 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    proxy: {
-      [process.env.VUE_APP_BASE_API]: {
-        // target: 'http://192.168.26.23:9402', //alvin
-        target: 'http://192.168.26.21:9402', //yihui
-        // target: 'http://192.168.26.12:9402', //kimi
-        changeOrigin: true,
-        pathRewrite: {
-          ['^' + process.env.VUE_APP_BASE_API]: ''
-        }
-      }
-    },
+    // proxy: {
+    //   [process.env.VUE_APP_BASE_API]: {
+    //     // target: 'http://192.168.26.23:9402', //alvin
+    //     // target: 'http://192.168.26.21:9402', //yihui
+    //     // target: 'http://192.168.26.12:9402', //kimi
+    //     target: 'http://192.168.26.26:9402', //dev
+    //     changeOrigin: true,
+    //     pathRewrite: {
+    //       ['^' + process.env.VUE_APP_BASE_API]: ''
+    //     }
+    //   }
+    // },
     // before: require('./mock/mock-server.js')
   },
   configureWebpack: {

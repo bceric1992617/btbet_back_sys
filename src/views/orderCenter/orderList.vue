@@ -21,17 +21,17 @@
         <el-form-item label="用户名：">
           <el-input v-model="listQuery.userName" placeholder="请输入用户名" class="filter-item"  />
         </el-form-item>
+        <el-form-item>
+          <el-button  class="filter-item" type="primary" @click="handleFilter">
+            查询
+          </el-button>
+          <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
+            重置
+          </el-button>
+        </el-form-item>
       
       </el-form>
-      <el-button  class="filter-item" type="primary" @click="handleFilter">
-        查询
-      </el-button>
-      <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
-        重置
-      </el-button>
-      <!-- <el-button class="filter-item" type="primary" @click="handleCreate('create')">
-        添加用户
-      </el-button> -->
+
 
       <el-table class="m-t-20" :data="list" border stripe>
         <el-table-column label="订单号" align="center">

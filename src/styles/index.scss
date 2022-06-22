@@ -66,15 +66,6 @@ div:focus {
 
 
 /* DIY */
-.b-1-0 {border:1px solid #000; margin-top:10px}
-.b-br-1-EBEEF5 {border-bottom:1px solid #EBEEF5; border-right:1px solid #EBEEF5;}
-
-
-.b-b-1-EBEEF5 {border-bottom:1px solid #EBEEF5;}
-.b-l-1-EBEEF5 {border-left:1px solid #EBEEF5;}
-.b-t-1-EBEEF5 {border-top:1px solid #EBEEF5;}
-
-
 .text-r {text-align: right;}
 .text-c {text-align: center;}
 .text-l {text-align: left;}
@@ -94,6 +85,7 @@ div:focus {
 .text-24 {font-size: 24px;}
 .float-l {float:left}
 .float-r {float:right}
+.inline {display: inline-block;}
 
 .w-100 {width:100% !important}
 .w-80 {width:80% !important}

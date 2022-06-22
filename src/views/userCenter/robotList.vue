@@ -7,23 +7,23 @@
       <el-form-item label="名称：">
         <el-input v-model="listQuery.botName" placeholder="请输入名称" class="filter-item"  />
       </el-form-item>
+      <el-form-item >
+        <el-button  class="filter-item" type="primary" @click="handleFilter">
+          查询
+        </el-button>
+        <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
+          重置
+        </el-button>
+      </el-form-item>
       
       </el-form>
-      <el-button  class="filter-item" type="primary" @click="handleFilter">
-        查询
-      </el-button>
-      <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
-        重置
-      </el-button>
-      <el-button class="filter-item" type="primary" @click="handleCreate('create')">
+      <el-button class="filter-item" type="success" size="mini" @click="handleCreate('create')" plain>
         添加
       </el-button>
 
+
       <el-table class="m-t-20" :data="list" border stripe>
-        <el-table-column label="ID" width="80px" align="center">
-          <template slot-scope="scope">{{scope.row.id}}</template>
-        </el-table-column>
-        <el-table-column label="名称" align="center">
+        <el-table-column label="机器人名称" align="center">
           <template slot-scope="scope">{{scope.row.botName}}</template>
         </el-table-column>
         <el-tableColumn label="令牌" align="center">
@@ -66,20 +66,20 @@
         ref="editForm"
         :model="editForm"
         :rules="rules"
-        label-width="70px"
+        label-width="100px"
       >
         <el-form-item label="飞机群id" prop="chatId" class="w-input">
-          <el-input v-model="editForm.username"></el-input>
+          <el-input v-model="editForm.chatId"></el-input>
         </el-form-item>
         <el-form-item label="token" prop="token" class="w-input">
-          <el-input v-model="editForm.username"></el-input>
+          <el-input v-model="editForm.token"></el-input>
         </el-form-item>
-        <el-form-item label="名称" prop="username" class="w-input">
+        <el-form-item label="机器人名称" prop="username" class="w-input">
           <el-input v-model="editForm.username"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="dialogFormVisible = false">取消</el-button>
         <el-button type="primary" @click="createData">确定</el-button>
       </span>
     </el-dialog>
@@ -128,37 +128,25 @@ export default {
   },
 
   methods: {
+
     changeStatus(row) {
-      if(row.status) {
-        var text = "确定禁用吗？"
-        var statusValue = this.$constant.STATUSLIST.DISABLESTATUS
-      } else {
-        var text = "确定启用吗？"
-        var statusValue = this.$constant.STATUSLIST.ENABLESTATUS
-      }
-
-      this.$confirm(text,"提示", {
-        cancelButtonText : "取消",
-        confirmButtonText : "确定",
-        type : 'warning'
-      }).then( async () => {
-        let args = this.$common.transferToSearchParams({
-          id : row.id,
-          status : statusValue,
-        })
-          this.$api.managerCenter.changeManagerStatus(args).then(res => {
-            if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
-              this.fetchData()
-              this.$message.success(res.msg)
-            } else {
-              this.$message.error(res.msg)
-            }
-          })
-
+      var statusValue = row.status ? this.$constant.STATUSLIST.DISABLESTATUS : this.$constant.STATUSLIST.ENABLESTATUS
+      let args = this.$common.transferToSearchParams({
+        id : row.id,
+        status : statusValue,
       })
+      this.$api.managerCenter.changeManagerStatus(args).then(res => {
+        if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
+          row.status = statusValue
+          this.$message.success(res.msg)
+        } else {
+          this.$message.error(res.msg)
+        }
+      })
+
     },
     createData(){
-      this.$refs.dataForm.validate(async vaild => {
+      this.$refs.editForm.validate(async vaild => {
         if(vaild) {
           let args = this.$common.transferToSearchParams(this.editForm)
           const {code, msg} = await this.$api.robotCenter.addRobot(args)
@@ -195,7 +183,8 @@ export default {
     async fetchData() {
       let args = this.$common.transferToSearchParams(this.listQuery)
       const { code, data } = await this.$api.robotCenter.getRobotList(args)
-      if(code == this.$constant.STATUSLIST.ENABLESTATUS) {
+      
+      if(code == this.$constant.RESPONSECODE.SUCCESS) {
         this.list = data.content
         this.total = data.totalElements
       }

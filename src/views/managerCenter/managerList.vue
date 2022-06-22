@@ -4,25 +4,33 @@
 
     <el-card class="box-card">
       <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-      <el-form-item label="用户名：">
-        <el-input v-model="listQuery.userName" placeholder="请输入用户名" class="filter-item"  />
-      </el-form-item>
-      
-      </el-form>
-      <el-button  class="filter-item" type="primary" @click="handleFilter">
-        查询
-      </el-button>
-      <el-button  class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
-        重置
-      </el-button>
-      <el-button class="filter-item" type="primary" @click="handleCreate('create')">
-        添加
-      </el-button>
+        <el-form-item label="用户名：">
+          <el-input v-model="listQuery.userName" placeholder="请输入用户名" class="filter-item"  />
+        </el-form-item>
+        <el-form-item>
+          <el-button class="filter-item" type="primary" @click="handleFilter">
+            查询
+          </el-button>
+          <el-button class="filter-item" @click="$common.resetArgs(listQuery);fetchData()">
+            重置
+          </el-button>
 
+        </el-form-item>
+      </el-form>
+      
+      <el-button class="filter-item" type="success" size="mini" @click="handleCreate('create')" plain>
+        添加用户
+      </el-button>
+      <el-button class="filter-item" type="success" size="mini" @click="handleEditPwd()" plain>
+        修改密码
+      </el-button>
       <el-table class="m-t-20" :data="list" border stripe>
-        <el-table-column label="ID" width="80px" align="center">
-          <template slot-scope="scope">{{scope.row.id}}</template>
+        <el-table-column label="修改密码" width="80px" align="center">
+          <template slot-scope="scope">
+            <el-checkbox :value="scope.row.id == editPwdForm.selectedId ? true : false" @change="selectedData($event, scope.row)"></el-checkbox>
+          </template>
         </el-table-column>
+
         <el-tableColumn label="用户名" align="center">
           <template slot-scope="scope">{{scope.row.userName}}</template>
         </el-tableColumn>
@@ -49,13 +57,6 @@
         <el-tableColumn label="操作" align="center">
           <!-- eslint-disable-next-line -->
           <template slot-scope="scope">
-            <!-- 修改用户按钮 -->
-            <!-- <el-button
-              type="primary"
-              icon="el-icon-edit"
-              size="mini"
-              @click="showEditDialog(scope.row.id)"
-            ></el-button> -->
 
             <!-- 删除用户按钮 -->
             <el-button
@@ -82,7 +83,7 @@
         </el-pagination>
       </div>
     </el-card>
-    <!-- 修改用户的对话框 -->
+    <!-- 添加用户的对话框 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="50%">
       <el-form
         ref="editForm"
@@ -91,21 +92,42 @@
         label-width="70px"
       >
         <el-form-item label="用户名" prop="userName" class="w-input">
-          <el-input v-model="editForm.userName"></el-input>
+          <el-input v-model="editForm.userName" placeholder="6~15字母或数字"></el-input>
         </el-form-item>
         <el-form-item label="昵称" prop="nickName" class="w-input">
-          <el-input v-model="editForm.nickName"></el-input>
+          <el-input v-model="editForm.nickName" placeholder="6~20字母"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password" class="w-input">
-          <el-input v-model="editForm.password"></el-input>
+          <el-input v-model="editForm.password" placeholder="6~15字母+数字组合"></el-input>
         </el-form-item>
         <el-form-item label="手机" prop="phone" class="w-input">
-          <el-input v-model="editForm.phone"></el-input>
+          <el-input v-model="editForm.phone" placeholder="1~20位数组"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="cancelData">取消</el-button>
         <el-button type="primary" @click="createData">确定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 修改密码的对话框 -->
+    <el-dialog title="修改密码" :visible.sync="dialogPwdFormVisible" width="50%">
+      <el-form
+        ref="editPwdForm"
+        :model="editPwdForm"
+        :rules="pwdRules"
+        label-width="70px"
+      >
+        <el-form-item label="旧密码" prop="oldPassword" class="w-input">
+          <el-input v-model="editPwdForm.oldPassword" placeholder="6~15英文或数字"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword" class="w-input">
+          <el-input v-model="editPwdForm.newPassword" placeholder="6~15英文或数字"></el-input>
+        </el-form-item>
+
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelData">取消</el-button>
+        <el-button type="primary" @click="changePwd">确定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -116,13 +138,16 @@ export default {
   data() {
     return {
       list: [],
+      selectedList: [],
       total: 0,
       dialogFormVisible: false,
+      dialogPwdFormVisible: false,
+      checked: false,
+
       listQuery: {
         pageNumber: 1,
         pageSize: this.$common.defaultPage,
         userName: '',
-
       },
       editForm : {
         userName: '',
@@ -130,16 +155,43 @@ export default {
         password: '',
         phone: '',
       },
+      editPwdForm : {
+        oldPassword: '',
+        newPassword: '',
+        selectedId: '',
+      },
       textMap: {
         create: '新增',
       },
       dialogStatus: '',
       rules: {
-        "userName": [{ required: true, message: '必填', trigger: 'blur' }],
-        "nickName": [{ required: true, message: '必填', trigger: 'blur' }],
-        "password": [{ required: true, message: '必填', trigger: 'blur' }],
-        "phone": [{ required: true, message: '必填', trigger: 'blur' }],
+        "userName": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z0-9]){6,15}$/, message: "请输入正确用户名，6~15字母或数字", trigger: 'blur'}
+        ],
+        "nickName": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z]){6,20}$/, message: "请输入正确昵称，6~20字母", trigger: 'blur'}
+        ],
+        "password": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z0-9]){6,15}$/, message: "请输入正确密码，6~15字母+数字组合", trigger: 'blur'}
+        ],
+        "phone": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z0-9]){6,15}$/, message: "请输入正确手机号码，1~20位数组", trigger: 'blur'}
+        ],
       },
+      pwdRules: {
+        "oldPassword": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z0-9]){6,15}$/, message: "请输入正确密码，6~15字母+数字组合", trigger: 'blur'}
+        ],
+        "newPassword": [
+          { required: true, message: '必填', trigger: 'blur' },
+          { pattern: /^([a-zA-Z0-9]){6,15}$/, message: "请输入正确密码，6~15字母+数字组合", trigger: 'blur'}
+        ],
+      }
     }
   },
 
@@ -148,12 +200,22 @@ export default {
   },
 
   methods: {
+    handleEditPwd() {
+      if(this.$common.isSet(this.editPwdForm.selectedId)) {
+        this.dialogPwdFormVisible = true
+      } else {
+        this.$message.warning("请先勾选修改密码")
+      }
+    },
+    selectedData(e,row) {
+      this.editPwdForm.selectedId = e ? row.id : ''
+    },
     createData(){
       this.$refs.editForm.validate(async vaild => {
         if(vaild) {
           let args = this.$common.transferToSearchParams(this.editForm)
           const {code, msg} = await this.$api.managerCenter.addManagerInfo(args)
-          if (code == this.$constant.STATUSLIST.ENABLESTATUS) {
+          if (code == this.$constant.RESPONSECODE.SUCCESS) {
             this.$message.success(msg)
             this.listQuery.pageNumber = 1
             this.fetchData()
@@ -164,35 +226,41 @@ export default {
         }
       })
     },
+    changePwd() {
+      this.$refs.editPwdForm.validate(async vaild => {
+        if(vaild) {
+          let args = this.$common.transferToSearchParams(this.editPwdForm)
+          const {code, msg} = await this.$api.managerCenter.changeManagerPwd(args)
+          if (code == this.$constant.RESPONSECODE.SUCCESS) {
+            this.$message.success(msg)
+            this.fetchData()
 
+            } else {
+            this.$message.error(msg)
+          }
+        }
+      })
+    },
+
+    cancelData() {
+      this.editPwdForm.selectedId = ''
+      this.dialogPwdFormVisible = false
+    },
 
     changeStatus(row) {
-      if(row.status) {
-        var text = "确定禁用吗？"
-        var statusValue = this.$constant.STATUSLIST.DISABLESTATUS
-      } else {
-        var text = "确定启用吗？"
-        var statusValue = this.$constant.STATUSLIST.ENABLESTATUS
-      }
-
-      this.$confirm(text,"提示", {
-        cancelButtonText : "取消",
-        confirmButtonText : "确定",
-        type : 'warning'
-      }).then( async () => {
-        let args = this.$common.transferToSearchParams({
-          id : row.id,
-          status : statusValue,
-        })
-          this.$api.managerCenter.changeManagerStatus(args).then(res => {
-            if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
-              this.fetchData()
-              this.$message.success(res.msg)
-            } else {
-              this.$message.error(res.msg)
-            }
-          })
-
+      var statusValue = row.status ? this.$constant.STATUSLIST.DISABLESTATUS : this.$constant.STATUSLIST.ENABLESTATUS
+      let args = this.$common.transferToSearchParams({
+        id : row.id,
+        status : statusValue,
+      })
+      this.$api.managerCenter.changeManagerStatus(args).then(res => {
+        if (res.code == this.$constant.RESPONSECODE.SUCCESS) {
+          // this.fetchData()
+          row.status = statusValue
+          this.$message.success(res.msg)
+        } else {
+          this.$message.error(res.msg)
+        }
       })
     },
 
@@ -204,7 +272,7 @@ export default {
       }).then(() => {
         let args = this.$common.transferToSearchParams({id : id})
         const {code, msg} = this.$api.managerCenter.delManagerInfo(args) 
-        if (code == this.$constant.STATUSLIST.ENABLESTATUS) {
+        if (code == this.$constant.RESPONSECODE.SUCCESS) {
           this.fetchData()
           this.$message.success(msg)
         } else {
@@ -230,30 +298,28 @@ export default {
     },
     // 获取列表数据
     async fetchData() {
-      const { code, data } = await this.$api.userCenter.getUserList(this.listQuery)
+      const { code, data } = await this.$api.managerCenter.getManagerList(this.listQuery)
       if(code == this.$constant.RESPONSECODE.SUCCESS) {
         this.list = data.content
         this.total = data.totalElements
       }
     },
+
     // 监听pageSize改变的事件
     handleSizeChange(newSize) {
-
       this.listQuery.pageSize = newSize
       this.getUserList()
     },
     // 监听page页码值改变的事件
     handleCurrentChange(newPage) {
-
       this.listQuery.pageNumber = newPage
       this.getUserList()
     },
-
-
   },
 }
 </script>
 
 <style scoped>
+
 </style>
 

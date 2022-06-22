@@ -47,3 +47,11 @@
 .el-range-separator {
   box-sizing: content-box;
 }
+
+
+
+
+.el-table--enable-row-hover .el-table__body tr:hover>td {
+  background-color: #C0C0C0;
+  color: #fff;
+}
